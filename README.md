@@ -108,7 +108,7 @@ smartAgriculture-server/
 #### 1. 后端安装
 1. 克隆项目
    ```bash
-   git clone <项目地址>
+   git clone https://github.com/zhyU0-0/SmartAgriculture-0-o
    cd smartAgriculture/smartAgriculture-server
    ```
 
