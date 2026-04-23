@@ -232,25 +232,120 @@ interface DeviceInfo {
 - 查看后端日志：Spring Boot 日志
 - 网络请求：使用 DevEco Studio 的网络调试工具
 
-## 未来规划
-
-- [ ] 移动端适配
-- [ ] 多语言支持
-- [ ] 更丰富的数据分析图表
-- [ ] 更多智能设备接入
-- [ ] 增强 AI 功能
-- [ ] 云服务集成
-
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-## 许可证
+## 关键技术
+### 大模型接入与skills平台
+主要使用LangChain来快速实现用对话控制AI调用接口的效果。
 
-本项目采用 MIT 许可证。
+ 我在数据库定义了一个user_skills的表
+```
+
+```
+ 然后在server部分的tools目录下创建了一些工具类，函数上写了函数的使用方法。
+ 例如风扇工具`FanTools`
+ ```
+
+@Slf4j
+@Component
+public class FanTools {
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    MqttService mqttService;
+    
+    // 传入地块id，打开风扇，只有用户指定地块时才执行
+    @Tool("Open fan by field ID. Only execute when user specifies the field.")
+    public void OpenFan(Long id) {
+        List<Device> deviceList =  deviceService.getByFieldIdAndType(id,Device.TYPE_Fan);
+        log.info("打开风扇");
+        deviceList.forEach(device -> {
+            mqttService.updateDeviceState(device.getSn(),0L,6,"1");
+        });
+    }
+
+    // 传入地块id，关闭风扇，只有用户指定地块时才执行
+    @Tool("Close fan by field ID. Only execute when user specifies the field.")
+    public void closeFan(Long id) {
+        List<Device> deviceList =  deviceService.getByFieldIdAndType(id,Device.TYPE_Fan);
+        log.info("关闭风扇");
+        deviceList.forEach(device -> {
+            mqttService.updateDeviceState(device.getSn(),1L,9,"0");
+        });
+    }
+
+}
+```
+然后还写了`ToolRegistry`专门用来管理工具。
+创建新的表`skills_tools`用来管理skills和tools的关系，方便skills的调用。
+具体工作逻辑就是
+1. 用户在AI聊天界面输入指令，例如“打开风扇”，把指令传到ChatController的chat方法把对话保存在数据库中，然后使用ChatService的`chat`。
+2. 在Service的`chat`方法中，先根据userId加载对应的skills和tools，通过模版注解动态创建Agent将skills的提示词systemMessage填入其中。
+3. 然后添加tools并完成调用，最后保存ai的返回对话到数据库。
+其中ChatService是这样写的：
+```
+@Service
+@Slf4j
+public class ChatServiceImpl implements ChatService {
+
+    @Autowired
+    UserSkillMapper userSkillMapper;
+    @Autowired
+    SkillsToolsMapper skillsToolsMapper;
+    @Autowired
+    LangChainConfig langChainConfig;
+    @Autowired
+    ToolRegistry toolRegistry;
+    @Autowired
+    UserMapper userMapper;
+     
+    interface DynamicChatAgent {
+        @SystemMessage("{{instruction}}")
+        String chat(@V("instruction") String instruction, @UserMessage String userMessage);
+    }
+    @Override
+    public String chat(ChatDto chatDto) {
+        ChatLanguageModel model = langChainConfig.chatLanguageModel();
+        User user = userMapper.getById(chatDto.getUserId());
+        UserSkill userSkill;
+        if(user.getSkillsId()!=null){
+            userSkill = userSkillMapper.getById(user.getSkillsId());
+        }else{
+            userSkill = userSkillMapper.getById(1L);
+        }
+
+        List<String> toolIds = skillsToolsMapper.selectToolsIdsBySkillsId(userSkill.getId());
+
+        // 创建一个临时的ChatAgent接口，使用静态的systemMessage
+        final String systemMessage = userSkill.getInstruction();
+
+
+        // 根据toolIds动态创建代理
+        var builder = AiServices.builder(DynamicChatAgent.class)
+                .chatLanguageModel(model);
+
+        // 根据toolIds添加对应的工具
+        List<Object> tools = new ArrayList<>();
+
+        tools = toolRegistry.getTools(toolIds);
+
+        // 创建代理并执行聊天
+        DynamicChatAgent chatAgent = builder.tools(tools).build();
+        return chatAgent.chat(systemMessage,chatDto.getMessage());
+    }
+}
+
+```
+因为在运行时想要直接修改chatAgent里面chat的注解是行不通的，所以我在这里设置了一个模版注解`DynamicChatAgent`，在运行时根据用户输入的指令动态创建Agent。只有在运行时才创建Agent，避免了在编译时就创建好Agent，导致在运行时无法动态添加注解的问题。
+```
+interface DynamicChatAgent {
+        @SystemMessage("{{instruction}}")
+        String chat(@V("instruction") String instruction, @UserMessage String userMessage);
+    }
+```
+
 
 ## 联系方式
-
-- 项目维护者: [Your Name]
-- 邮箱: [your.email@example.com]
-- 项目地址: <项目仓库地址>
+- 邮箱: [2029771797@qq.com]
