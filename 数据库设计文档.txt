@@ -1,0 +1,346 @@
+# 智能农业系统数据库设计文档
+
+## 1. 数据库概述
+
+智能农业系统数据库采用MySQL数据库，用于存储用户信息、地块信息、设备信息、网关信息、环境数据、天气数据、AI聊天记录等数据。数据库设计遵循关系型数据库设计原则，通过合理的表结构和字段设计，确保数据的完整性和一致性。
+
+## 2. 数据库表结构
+
+### 2.1 设备表（device）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 设备ID |
+| sn | varchar(255) |  | 设备SN码 |
+| type | int | 默认0 | 消息类型(默认0) |
+| status | int | 默认0 | 设备状态 |
+| create_time | datetime |  | 创建时间 |
+| update_time | datetime |  | 更新时间 |
+| field_id | bigint |  | 地块ID |
+| gateway_id | bigint |  | 网关ID |
+| user_id | bigint |  | 用户ID |
+| name | varchar(255) |  | 设备名称 |
+
+### 2.2 地块-设备关联表（device_field）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 关联ID |
+| field_id | varchar(255) |  | 地块ID |
+| device_id | varchar(255) |  | 设备ID |
+
+### 2.3 异常信息表（exception_info）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 异常ID |
+| content | varchar(255) |  | 异常内容 |
+| status | varchar(255) |  | 信息状态 |
+| type | int |  | 异常类型 |
+| create_time | datetime |  | 创建时间 |
+| update_time | datetime |  | 更新时间 |
+| gateway_id | bigint |  | 网关ID |
+| field_id | bigint |  | 地块ID |
+| process_function | varchar(255) |  | 处理函数 |
+
+### 2.4 地块表（field）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 地块ID |
+| type | int | 默认0 | 消息类型(默认0) |
+| status | int | 默认0 | 地块状态 |
+| create_time | datetime |  | 创建时间 |
+| update_time | datetime |  | 更新时间 |
+| user_id | bigint |  | 用户ID |
+| name | varchar(255) |  | 地块名称 |
+| area | decimal(10,2) |  | 地块面积 |
+| content | varchar(255) |  | 地块描述 |
+| address | varchar(255) |  | 位置 |
+| temp | decimal(10,2) |  | 温度 |
+| humidity | decimal(10,2) |  | 湿度 |
+| image | varchar(200) |  | 图片路径 |
+| irrigation_volume | decimal(10,3) |  | 灌溉量 |
+| crop_type | varchar(100) |  | 作物类型 |
+| land_humidity | decimal(10,2) |  | 土壤湿度 |
+| land_temp | decimal(10,2) |  | 土壤温度 |
+| concentration_co2 | decimal(10,2) |  | CO2浓度 |
+| light_intensity | decimal(10,2) |  | 光照强度 |
+| density | decimal(10,2) |  | 种植密度 |
+
+### 2.5 网关表（gateway）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 网关ID |
+| type | int | 默认0 | 消息类型(默认0) |
+| status | int | 默认0 | 网关状态 |
+| create_time | datetime |  | 创建时间 |
+| update_time | datetime |  | 更新时间 |
+| user_id | bigint |  | 用户ID |
+| name | varchar(255) |  | 网关名称 |
+| content | varchar(255) |  | 网关描述 |
+| sn | varchar(200) |  | 网关SN码 |
+| address | varchar(255) |  | 网关地址 |
+
+### 2.6 坐标表（location_table）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 坐标ID |
+| max_x | varchar(255) |  | 最大X坐标 |
+| max_y | varchar(255) |  | 最大Y坐标 |
+| point_x | varchar(255) |  | 点X坐标 |
+| point_y | varchar(255) |  | 点Y坐标 |
+| picture | text |  | 图片 |
+| device_sn | varchar(255) |  | 设备SN码 |
+| data | text |  | 数据 |
+
+### 2.7 节点表（node）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 节点ID |
+| user_id | bigint |  | 用户ID |
+| create_time | datetime |  | 创建时间 |
+| update_time | datetime |  | 更新时间 |
+| content | text |  | 内容 |
+
+### 2.8 消息表（session）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 消息ID |
+| content | text |  | 消息内容 |
+| image_url | varchar(255) |  | 图片路径 |
+| type | int |  | 消息类型(imageChat/chat) |
+| role | int |  | 角色 |
+| create_time | datetime |  | 创建时间 |
+| user_id | bigint |  | 用户ID |
+
+### 2.9 技能工具表（skills_tools）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 技能工具ID |
+| skills_id | bigint |  | 技能ID |
+| tools | varchar(225) |  | 工具 |
+
+### 2.10 阈值配置表（threshold）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 阈值ID |
+| max_temp | decimal(5,2) |  | 最高温度(℃) |
+| min_temp | decimal(5,2) |  | 最低温度(℃) |
+| max_humidity | decimal(5,2) |  | 最高湿度(%) |
+| min_humidity | decimal(5,2) |  | 最低湿度(%) |
+| max_concentration_co2 | decimal(10,2) |  | 最高CO2浓度(mg/L) |
+| min_concentration_co2 | decimal(10,2) |  | 最低CO2浓度(mg/L) |
+| create_time | datetime |  | 创建时间 |
+| update_time | datetime |  | 更新时间 |
+| remark | varchar(500) |  | 备注信息 |
+| field_id | bigint |  | 地块ID |
+| land_max_temp | decimal(10,2) |  | 土壤最高温度 |
+| land_min_temp | int |  | 土壤最低温度 |
+| land_max_humidity | decimal(10,2) |  | 土壤最高湿度 |
+| land_min_humidity | decimal(10,2) |  | 土壤最低湿度 |
+| max_light_intensity | decimal(5,2) |  | 最高光照强度 |
+| min_light_intensity | decimal(5,2) |  | 最低光照强度 |
+
+### 2.11 用户信息表（user）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 用户ID |
+| openid | varchar(45) |  | 第三方标识(如微信openid) |
+| name | varchar(255) |  | 用户姓名 |
+| password | varchar(255) |  | 用户密码（建议存储加密后的密文） |
+| image | varchar(500) |  | 用户头像路径 |
+| create_time | datetime |  | 创建时间 |
+| money | decimal(10,3) |  | 账号资金 |
+| phone | varchar(20) |  | 手机号 |
+| skills_id | bigint |  | 用户选择的技能 |
+
+### 2.12 用户技能表（user_skill）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 技能ID |
+| name | varchar(225) |  | 技能名称 |
+| description | text |  | 技能描述 |
+| instruction | text |  | 技能指令 |
+| user_id | bigint |  | 用户ID |
+| create_time | datetime |  | 创建时间 |
+| update_time | datetime |  | 更新时间 |
+
+### 2.13 数值表（value_table）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 数值ID |
+| value | decimal(10,2) |  | 数值 |
+| create_time | datetime |  | 创建时间 |
+| device_id | bigint |  | 设备ID |
+| type | int |  | 类型 |
+
+### 2.14 天气数据表（weather_data）
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| id | bigint | 主键，自增 | 天气数据ID |
+| date | date | 非空 | 日期，如：2026-03-17 |
+| week | varchar(10) |  | 星期几，如：2 (代表星期二) |
+| dayweather | varchar(50) |  | 白天天气状况，如：阴 |
+| nightweather | varchar(50) |  | 夜间天气状况，如：小雨 |
+| daytemp | varchar(10) |  | 白天温度（摄氏度） |
+| nighttemp | varchar(10) |  | 夜间温度（摄氏度） |
+| daywind | varchar(20) |  | 白天风向，如：南 |
+| nightwind | varchar(20) |  | 夜间风向，如：南 |
+| daypower | varchar(20) |  | 白天风力等级，如：1-3 |
+| nightpower | varchar(20) |  | 夜间风力等级，如：1-3 |
+| daytemp_float | varchar(10) |  | 白天温度（浮点数格式） |
+| nighttemp_float | varchar(10) |  | 夜间温度（浮点数格式） |
+| advice | text |  | 生活建议 |
+| created_time | datetime |  | 创建时间 |
+| updated_time | datetime |  | 更新时间 |
+| gateway_id | bigint |  | 网关ID |
+| date_num | int |  | 日期编号(1-4) |
+
+## 3. 表之间的关系
+
+### 3.1 关系图
+
+```
+user ────────────── field ────────────── device
+  │                   │                   │
+  │                   │                   │
+  │                   │                   ▼
+  │                   │              value_table
+  │                   │
+  │                   ▼
+  │              threshold
+  │
+  ▼
+user_skill ────── skills_tools
+  │
+  ▼
+session
+
+user ────────────── gateway ──────────── device
+  │                   │
+  │                   ▼
+  │              weather_data
+  │
+  ▼
+exception_info ──── field
+```
+
+### 3.2 详细关系
+
+1. **用户与地块**：一个用户可以拥有多个地块（一对多）
+2. **用户与网关**：一个用户可以拥有多个网关（一对多）
+3. **用户与技能**：一个用户可以拥有多个技能（一对多）
+4. **用户与消息**：一个用户可以拥有多条消息（一对多）
+5. **地块与设备**：一个地块可以有多个设备（一对多）
+6. **地块与阈值**：一个地块可以有一个阈值配置（一对一）
+7. **地块与异常信息**：一个地块可以有多个异常信息（一对多）
+8. **网关与设备**：一个网关可以连接多个设备（一对多）
+9. **网关与天气数据**：一个网关可以关联多个天气数据（一对多）
+10. **设备与数值**：一个设备可以产生多个数值记录（一对多）
+11. **技能与工具**：一个技能可以关联多个工具（一对多）
+
+## 4. 索引设计
+
+### 4.1 现有索引
+
+| 表名 | 索引名 | 索引字段 | 类型 | 描述 |
+|------|--------|----------|------|------|
+| threshold | idx_create_time | create_time | 普通索引 | 加速按创建时间查询阈值 |
+
+### 4.2 建议添加的索引
+
+| 表名 | 索引名 | 索引字段 | 类型 | 描述 |
+|------|--------|----------|------|------|
+| device | idx_field_id | field_id | 普通索引 | 加速按地块ID查询设备 |
+| device | idx_gateway_id | gateway_id | 普通索引 | 加速按网关ID查询设备 |
+| field | idx_user_id | user_id | 普通索引 | 加速按用户ID查询地块 |
+| gateway | idx_user_id | user_id | 普通索引 | 加速按用户ID查询网关 |
+| session | idx_user_id | user_id | 普通索引 | 加速按用户ID查询消息 |
+| user_skill | idx_user_id | user_id | 普通索引 | 加速按用户ID查询技能 |
+| value_table | idx_device_id | device_id | 普通索引 | 加速按设备ID查询数值 |
+| weather_data | idx_gateway_id | gateway_id | 普通索引 | 加速按网关ID查询天气数据 |
+| weather_data | idx_date | date | 普通索引 | 加速按日期查询天气数据 |
+
+## 5. 数据字典
+
+### 5.1 设备类型（device.type）
+
+| 类型值 | 描述 |
+|-------|------|
+| 1 | 温度传感器 |
+| 2 | 土壤温度传感器 |
+| 4 | 湿度传感器 |
+| 5 | 土壤湿度传感器 |
+| 7 | CO2浓度传感器 |
+| 11 | 智能灌溉 |
+| 12 | 感知组 |
+| 13 | 灯带 |
+| 14 | 电机 |
+| 15 | 风扇 |
+| 16 | 水泵 |
+| 17 | 摄像头 |
+| 99 | 其他设备 |
+
+### 5.2 设备状态（device.status）
+
+| 状态值 | 描述 |
+|-------|------|
+| 0 | 离线 |
+| 1 | 在线 |
+
+### 5.3 地块状态（field.status）
+
+| 状态值 | 描述 |
+|-------|------|
+| 0 | 待播种 |
+| 1 | 生长中 |
+
+### 5.4 网关状态（gateway.status）
+
+| 状态值 | 描述 |
+|-------|------|
+| 0 | 离线 |
+| 1 | 在线 |
+
+### 5.5 消息类型（session.type）
+
+| 类型值 | 描述 |
+|-------|------|
+| 0 | 文本消息 |
+| 1 | 图片消息 |
+
+### 5.6 消息角色（session.role）
+
+| 角色值 | 描述 |
+|-------|------|
+| 0 | 用户 |
+| 1 | AI助手 |
+
+## 6. 数据库设计特点
+
+1. **完整性**：数据库设计覆盖了智能农业系统的所有核心功能，包括用户管理、地块管理、设备管理、网关管理、环境监测、天气查询、AI聊天、技能管理等。
+
+2. **一致性**：表结构设计合理，字段命名规范，数据类型选择适当，确保数据的一致性和准确性。
+
+3. **可扩展性**：数据库设计考虑了系统的未来扩展，预留了必要的字段和表结构。
+
+4. **性能优化**：通过合理的索引设计，提高了数据库的查询性能。
+
+5. **安全性**：用户密码字段建议存储加密后的密文，确保用户数据的安全。
+
+## 7. 总结
+
+智能农业系统数据库设计采用了关系型数据库的设计原则，通过合理的表结构和字段设计，确保了数据的完整性、一致性和可扩展性。数据库覆盖了系统的所有核心功能，包括用户管理、地块管理、设备管理、网关管理、环境监测、天气查询、AI聊天、技能管理等。通过适当的索引设计，提高了数据库的查询性能，为系统的高效运行提供了保障。
+
+该数据库设计为智能农业系统的开发和运行提供了坚实的数据基础，支持系统的各项功能和未来的扩展需求。

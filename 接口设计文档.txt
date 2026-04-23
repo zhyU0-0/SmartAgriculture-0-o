@@ -1,0 +1,219 @@
+# 智能农业系统接口设计文档
+
+## 1. 项目概述
+
+智能农业系统是一个基于Java Spring Boot的后端服务，提供智能农业管理平台的API接口。系统主要功能包括用户管理、地块管理、设备管理、网关管理、AI聊天、天气查询、技能管理和阈值管理等。
+
+## 2. 接口设计
+
+### 2.1 基础信息
+
+- **基础URL**：系统API的基础路径
+- **请求方式**：支持GET、POST、PUT、DELETE等HTTP方法
+- **响应格式**：统一使用JSON格式，包含code、message和data字段
+- **认证方式**：使用JWT token进行认证
+
+### 2.2 接口列表
+
+#### 2.2.1 用户管理模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /user/user/login | POST | 用户登录 | `{"code": "string"}` | `{"code": 200, "message": "success", "data": {"id": 1, "name": "string", "phone": "string", "token": "string"}}` |
+| /user/user/phoneLogin | POST | 手机号登录 | `{"phone": "string"}` | `{"code": 200, "message": "success", "data": {"id": 1, "name": "string", "phone": "string", "token": "string"}}` |
+| /user/user/fieldCount | GET | 获取用户地块数量 | `userId`（查询参数） | `{"code": 200, "message": "success", "data": 5}` |
+| /user/user/fieldTotalArea | GET | 获取用户地块总面积 | `userId`（查询参数） | `{"code": 200, "message": "success", "data": 100.5}` |
+| /user/user/deviceCount | GET | 获取用户设备数量 | `userId`（查询参数） | `{"code": 200, "message": "success", "data": 10}` |
+
+#### 2.2.2 地块管理模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /user/field | POST | 创建地块 | `{"name": "string", "area": 100.5, "cropType": "string", "irrigationVolume": 50, "gatewayId": 1}` | `{"code": 200, "message": "success", "data": null}` |
+| /user/field/{id} | DELETE | 删除地块 | `id`（路径参数） | `{"code": 200, "message": "success", "data": null}` |
+| /user/field | PUT | 更新地块 | `{"id": 1, "name": "string", "area": 100.5, "cropType": "string", "irrigationVolume": 50, "gatewayId": 1}` | `{"code": 200, "message": "success", "data": null}` |
+| /user/field/{id} | GET | 获取地块详情 | `id`（路径参数） | `{"code": 200, "message": "success", "data": {"id": 1, "name": "string", "area": 100.5, "status": 1, "image": "string", "cropType": "string", "irrigationVolume": 50, "temp": 25, "humidity": 60, "landTemp": 20, "landHumidity": 50, "concentration_co2": 400, "lightIntensity": 10000, "density": "string"}}` |
+| /user/field/list | GET | 获取用户地块列表 | 无（从上下文获取userId） | `{"code": 200, "message": "success", "data": [{"id": 1, "name": "string", "area": 100.5, "status": 1, "image": "string", "cropType": "string", "irrigationVolume": 50, "temp": 25, "humidity": 60, "landTemp": 20, "landHumidity": 50, "concentration_co2": 400, "lightIntensity": 10000, "density": "string"}]}` |
+| /user/field/value/{id} | GET | 获取地块环境数据 | `id`（路径参数） | `{"code": 200, "message": "success", "data": {"deviceValueList": [{"deviceId": 1, "deviceName": "string", "valueList": [{"type": 1200, "value": 25, "createTime": "2026-04-17T10:00:00"}]}}` |
+| /user/field/fillContent | PUT | 填充地块数据 | `{"fieldId": 1, "content": "string"}` | `{"code": 200, "message": "success", "data": null}` |
+| /user/field/getImage/{id} | GET | 获取地块图片 | `id`（路径参数） | `{"code": 200, "message": "success", "data": "https://example.com/image.jpg"}` |
+| /user/field/log/{id} | GET | 获取地块设备日志 | `id`（路径参数） | `{"code": 200, "message": "success", "data": [{"deviceId": 1, "deviceName": "string", "log": "string", "createTime": "2026-04-17T10:00:00"}]}` |
+
+#### 2.2.3 设备管理模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /hardware/device | POST | 创建设备 | `{"name": "string", "type": "1", "sn": "001122334455", "gatewayId": 1, "fieldId": 1}` | `{"code": 200, "message": "success", "data": null}` |
+| /hardware/device/submit | PUT | 上传设备数据 | `{"deviceSn": "001122334455", "value": 25, "type": 1200}` | `{"code": 200, "message": "success", "data": null}` |
+
+#### 2.2.4 网关管理模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /hardware/gateway | POST | 创建网关 | `{"name": "string", "sn": "001122334455", "address": "string", "userId": 1}` | `{"code": 200, "message": "success", "data": null}` |
+
+#### 2.2.5 AI聊天模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /ai/chat | POST | 文本聊天 | `{"message": "string", "userId": 1}` | `{"code": 200, "message": "success", "data": "AI回复内容"}` |
+| /ai/chat1 | POST | WebSocket聊天 | `{"message": "string"}` | `{"code": 200, "message": "success", "data": null}` |
+| /ai/image-chat | POST | 图片聊天 | `{"message": "string", "imageUrl": "https://example.com/image.jpg", "userId": 1}` | `{"code": 200, "message": "success", "data": "AI回复内容"}` |
+| /ai/history/{userId} | GET | 获取聊天历史 | `userId`（路径参数） | `{"code": 200, "message": "success", "data": [{"id": 1, "content": "string", "imageUrl": "string", "type": "Text", "role": "User", "createTime": "2026-04-17T10:00:00", "userId": 1}]}` |
+| /ai/history/{userId} | DELETE | 删除聊天历史 | `userId`（路径参数） | `{"code": 200, "message": "success", "data": null}` |
+| /ai/getHarvest | POST | 计算收成 | `{"cropType": "string", "area": 100.5, "density": "string", "growthStatus": "string"}` | `{"code": 200, "message": "success", "data": {"yield": "100-200kg", "income": "1.2-1.3万元"}}` |
+| /ai/getFertilizer | POST | 获取施肥建议 | `{"cropType": "string", "area": 100.5, "density": "string", "growthStatus": "string"}` | `{"code": 200, "message": "success", "data": "施肥建议内容"}` |
+
+#### 2.2.6 天气查询模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /mqtt/w | POST | 获取天气数据 | `{"message": "string"}` | `{"code": 200, "message": "success", "data": [{"date": "2026-04-17", "tempMax": 25, "tempMin": 15, "weather": "晴", "wind": "东北风3级", "advice": "天气晴好，适合种植"}]}` |
+| /mqtt/w/code | POST | 获取地区编码 | `{"message": "string"}` | `{"code": 200, "message": "success", "data": "101010100"}` |
+| /mqtt/w/news | POST | 获取新闻数据 | `{"message": "string"}` | `{"code": 200, "message": "success", "data": [{"title": "string", "content": "string", "url": "https://example.com/news"}]}` |
+| /mqtt/w/all | POST | 同步所有网关天气数据 | 无 | `{"code": 200, "message": "success", "data": null}` |
+
+#### 2.2.7 技能管理模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /ai/skills/allTools | GET | 获取所有工具列表 | 无 | `{"code": 200, "message": "success", "data": [{"id": 1, "name": "string", "description": "string"}]}` |
+| /ai/skills/user/{userId} | GET | 获取用户技能列表 | `userId`（路径参数） | `{"code": 200, "message": "success", "data": [{"id": 1, "name": "string", "description": "string", "instruction": "string", "userId": "1", "toolId": 1}]}` |
+| /ai/skills/getSkills/{userId} | GET | 获取用户使用的技能 | `userId`（路径参数） | `{"code": 200, "message": "success", "data": {"id": 1, "name": "string", "description": "string", "instruction": "string", "userId": "1", "toolId": 1}}` |
+| /ai/skills/selectSkill/{skillId} | PUT | 选择技能 | `skillId`（路径参数） | `{"code": 200, "message": "success", "data": null}` |
+| /ai/skills/all | GET | 获取所有技能列表 | 无 | `{"code": 200, "message": "success", "data": [{"id": 1, "name": "string", "description": "string", "instruction": "string", "userId": "1", "toolId": 1}]}` |
+| /ai/skills/{id} | GET | 获取技能详情 | `id`（路径参数） | `{"code": 200, "message": "success", "data": {"id": 1, "name": "string", "description": "string", "instruction": "string", "userId": "1", "toolId": 1}}` |
+| /ai/skills | POST | 添加技能 | `{"name": "string", "description": "string", "instruction": "string", "userId": "1", "toolId": 1}` | `{"code": 200, "message": "success", "data": null}` |
+| /ai/skills | PUT | 更新技能 | `{"id": 1, "name": "string", "description": "string", "instruction": "string", "userId": "1", "toolId": 1}` | `{"code": 200, "message": "success", "data": null}` |
+| /ai/skills/{id} | DELETE | 删除技能 | `id`（路径参数） | `{"code": 200, "message": "success", "data": null}` |
+| /ai/skills/skillsTools/{id} | GET | 获取技能工具 | `id`（路径参数） | `{"code": 200, "message": "success", "data": ["tool1", "tool2"]}` |
+
+#### 2.2.8 阈值管理模块
+
+| 接口路径 | 方法 | 功能描述 | 请求参数 | 响应数据 |
+|---------|------|----------|----------|----------|
+| /hardware/threshold | POST | 创建阈值 | `{"fieldId": 1, "tempMax": 30, "tempMin": 10, "humidityMax": 80, "humidityMin": 40, "lightMax": 50000, "lightMin": 10000, "co2Max": 800, "co2Min": 350}` | `{"code": 200, "message": "success", "data": null}` |
+| /hardware/threshold/update | PUT | 更新阈值 | `{"id": 1, "fieldId": 1, "tempMax": 30, "tempMin": 10, "humidityMax": 80, "humidityMin": 40, "lightMax": 50000, "lightMin": 10000, "co2Max": 800, "co2Min": 350}` | `{"code": 200, "message": "success", "data": null}` |
+
+## 3. 数据结构
+
+### 3.1 核心数据对象
+
+#### 3.1.1 用户相关
+
+- **UserLoginDTO**：用户登录请求对象，包含code字段
+- **PhoneLoginDTO**：手机号登录请求对象，包含phone字段
+- **UserLoginVO**：登录响应对象，包含id、name、phone、token字段
+- **PhoneLoginVO**：手机号登录响应对象，包含id、name、phone字段
+
+#### 3.1.2 地块相关
+
+- **FieldDTO**：地块请求对象，包含地块相关信息
+- **Field**：地块响应对象，包含地块详细信息
+- **FieldValueListDTO**：地块环境数据响应对象
+- **FillContentDTO**：填充地块数据请求对象
+- **DeviceLogDTO**：设备日志响应对象
+
+#### 3.1.3 设备相关
+
+- **DeviceDTO**：设备请求对象，包含设备相关信息
+- **SubmitDTO**：设备数据上传请求对象
+
+#### 3.1.4 网关相关
+
+- **GatewayDTO**：网关请求对象，包含网关相关信息
+- **Gateway**：网关响应对象，包含网关详细信息
+
+#### 3.1.5 AI聊天相关
+
+- **ChatDto**：聊天请求对象，包含message、userId字段
+- **ImageChatDto**：图片聊天请求对象，包含message、imageUrl、userId字段
+- **Session**：聊天会话对象，包含id、content、imageUrl、type、role、createTime、userId字段
+- **HarvestDTO**：收成计算请求对象
+- **HarvestVO**：收成计算响应对象
+- **FertilizerDTO**：施肥建议请求对象
+
+#### 3.1.6 天气相关
+
+- **MqttChatDto**：MQTT聊天请求对象，包含message字段
+- **WeatherData**：天气数据响应对象
+- **NewsData**：新闻数据响应对象
+
+#### 3.1.7 技能相关
+
+- **SkillsDTO**：技能请求对象，包含技能相关信息
+- **UserSkill**：技能响应对象，包含技能详细信息
+- **Tools**：工具响应对象，包含工具详细信息
+
+#### 3.1.8 阈值相关
+
+- **ThresholdDTO**：阈值请求对象，包含阈值相关信息
+- **Threshold**：阈值响应对象，包含阈值详细信息
+
+### 3.2 响应结构
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {}
+}
+```
+
+- **code**：响应状态码，200表示成功，其他表示失败
+- **message**：响应消息，成功时为"success"，失败时为错误信息
+- **data**：响应数据，根据接口不同返回不同的数据结构
+
+## 4. 技术实现
+
+### 4.1 框架和技术
+
+- **后端框架**：Spring Boot 2.7.0
+- **数据库**：MySQL 8.0
+- **认证**：JWT
+- **WebSocket**：用于实时通信
+- **AI集成**：LangChain4j
+- **天气API**：第三方天气服务
+
+### 4.2 架构设计
+
+- **分层架构**：Controller → Service → Repository
+- **RESTful API**：遵循RESTful设计风格
+- **统一响应**：使用Result类统一处理响应
+- **异常处理**：全局异常处理
+- **日志记录**：使用Slf4j进行日志记录
+
+## 5. 安全考虑
+
+- **JWT认证**：使用JWT token进行身份验证
+- **参数验证**：对请求参数进行验证
+- **防止SQL注入**：使用MyBatis-Plus进行ORM操作
+- **防止XSS攻击**：对输入进行过滤
+- **HTTPS**：使用HTTPS协议进行通信
+
+## 6. 部署与维护
+
+### 6.1 部署方式
+
+- **容器化部署**：使用Docker容器化部署
+- **集群部署**：支持集群部署，提高系统可用性
+- **负载均衡**：使用Nginx进行负载均衡
+
+### 6.2 监控与维护
+
+- **日志监控**：使用ELK进行日志收集和分析
+- **性能监控**：使用Spring Boot Actuator进行性能监控
+- **告警机制**：设置系统告警机制，及时发现和处理问题
+
+## 7. 接口文档维护
+
+- **文档更新**：接口变更时及时更新文档
+- **版本管理**：对接口进行版本管理
+- **API测试**：使用Postman进行API测试
+- **文档访问**：提供在线API文档，方便前端开发人员使用
+
+## 8. 总结
+
+本接口设计文档详细描述了智能农业系统的API接口，包括用户管理、地块管理、设备管理、网关管理、AI聊天、天气查询、技能管理和阈值管理等模块。接口设计遵循RESTful风格，使用统一的响应格式，确保系统的可扩展性和可维护性。
+
+通过这些接口，前端应用可以实现与后端服务的交互，为用户提供智能农业管理功能，包括地块管理、设备控制、环境监测、AI助手等服务。
